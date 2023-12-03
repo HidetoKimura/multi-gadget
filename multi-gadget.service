@@ -11,4 +11,4 @@ ExecStart=/usr/bin/multi-gadget up
 ExecStop=/usr/bin/multi-gadget down
  
 [Install]
-WantedBy=dafault.target
+WantedBy=multi-user.target
