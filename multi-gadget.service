@@ -1,0 +1,14 @@
+# /usr/lib/systemd/system/multi-gadget.service
+ 
+[Unit]
+Description=Multi Gadget
+After=systemd-modules-load.service
+ 
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/multi-gadget up
+ExecStop=/usr/bin/multi-gadget down
+ 
+[Install]
+WantedBy=dafault.target
