@@ -85,19 +85,15 @@ un_usb_up() {
 
     # RNDIS - Register this first
     mkdir -p ${g}/functions/rndis.usb0
+ 
+    # Set up MAC addresses
+    smac=$(cat /sys/class/net/wlan0/address)
+    dev_mac="22$(echo ${smac} | cut -b 3-)"
+    host_mac="32$(echo ${smac} | cut -b 3-)"
+    echo "${dev_mac}"  > ${g}/functions/rndis.usb0/dev_addr
+    echo "${host_mac}" > ${g}/functions/rndis.usb0/host_addr  
+
     ln -s ${g}/functions/rndis.usb0 ${g}/configs/c.1/
-
-    # OS descriptors
-    echo 1       > ${g}/os_desc/use
-    echo 0xcd    > ${g}/os_desc/b_vendor_code  # Microsoft
-    echo MSFT100 > ${g}/os_desc/qw_sign        # Microsoft
-
-    # matches Windows RNDIS Drivers
-    echo RNDIS   > ${g}/functions/rndis.usb0/os_desc/interface.rndis/compatible_id
-    # matches Windows RNDIS 6.0 Driver
-    echo 5162001 > ${g}/functions/rndis.usb0/os_desc/interface.rndis/sub_compatible_id
-
-    ln -s ${g}/configs/c.1 ${g}/os_desc
 
     # Serial
     mkdir -p ${g}/functions/acm.usb0
@@ -112,6 +108,18 @@ un_usb_up() {
     echo 1 > ${g}/functions/mass_storage.usb0/lun.0/removable
     echo $storage_file > ${g}/functions/mass_storage.usb0/lun.0/file
     ln -s ${g}/functions/mass_storage.usb0 ${g}/configs/c.1/
+
+    # OS descriptors
+    echo 1       > ${g}/os_desc/use
+    echo 0xcd    > ${g}/os_desc/b_vendor_code  # Microsoft
+    echo MSFT100 > ${g}/os_desc/qw_sign        # Microsoft
+
+    # matches Windows RNDIS Drivers
+    echo RNDIS   > ${g}/functions/rndis.usb0/os_desc/interface.rndis/compatible_id
+    # matches Windows RNDIS 6.0 Driver
+    echo 5162001 > ${g}/functions/rndis.usb0/os_desc/interface.rndis/sub_compatible_id
+
+    ln -s ${g}/configs/c.1 ${g}/os_desc
 
     # Wait for udev to settle
     udevadm settle -t 5 || :
@@ -150,7 +158,7 @@ un_usb_down() {
     systemctl stop getty@ttyGS0.service
 
     # Set down RNDIS
-    ifconfig usb0 down
+    ifconfig usb0 down || :
 
     # Have to unlink and remove directories in reverse order.
     # Checks allow to finish takedown after error.
